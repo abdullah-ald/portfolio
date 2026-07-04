@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
     --ink: #0B0F14;
@@ -53,12 +54,29 @@
     opacity: 0.6;
   }
 
+  .bg-canvas{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+  }
+  .bg-canvas.ready{ opacity: 1; }
+
   .container{
     max-width: 1080px;
     margin: 0 auto;
     padding: 0 32px;
     position: relative;
     z-index: 2;
+  }
+  @media (max-width: 640px){
+    .container{ padding: 0 22px; }
+    .nav-inner{ padding: 14px 20px; }
+  }
+  @media (max-width: 400px){
+    .container{ padding: 0 16px; }
   }
 
   /* ---------- NAV ---------- */
@@ -69,6 +87,11 @@
     background: rgba(11,15,20,0.85);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  nav.scrolled{
+    background: rgba(11,15,20,0.96);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   }
   .nav-inner{
     max-width: 1080px;
@@ -120,9 +143,63 @@
     transition: width 0.25s ease;
   }
   .nav-links a:hover::after{ width: 100%; }
-  @media (max-width: 720px){
-    .nav-links{ display: none; }
+
+  .nav-toggle{
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 60;
   }
+  .nav-toggle span{
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: var(--paper);
+    border-radius: 1px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .nav-toggle.open span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.open span:nth-child(2){ opacity: 0; }
+  .nav-toggle.open span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
+
+  @media (max-width: 720px){
+    .nav-links{
+      position: fixed;
+      top: 0; right: 0;
+      height: 100vh;
+      width: min(72vw, 300px);
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 28px;
+      padding: 32px;
+      background: var(--panel-2);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      font-size: 15px;
+      z-index: 55;
+    }
+    .nav-links.open{ transform: translateX(0); }
+    .nav-toggle{ display: flex; }
+  }
+  .nav-scrim{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .nav-scrim.open{ opacity: 1; pointer-events: auto; }
 
   /* ---------- HERO ---------- */
   .hero{
@@ -216,6 +293,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-wrap: wrap;
     opacity: 0;
     animation: fade-up 0.6s ease 2.1s forwards;
   }
@@ -227,6 +305,7 @@
   }
   .confidence-bar{
     width: 220px;
+    max-width: 50vw;
     height: 6px;
     background: var(--panel);
     border: 1px solid var(--border);
@@ -272,6 +351,30 @@
     padding: 120px 0;
     border-top: 1px solid var(--border);
     position: relative;
+  }
+  @media (max-width: 720px){
+    section{ padding: 80px 0; }
+  }
+  @media (max-width: 480px){
+    section{ padding: 60px 0; }
+  }
+
+  .cursor-glow{
+    position: fixed;
+    top: 0; left: 0;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,209,197,0.10), transparent 70%);
+    transform: translate3d(-50%,-50%,0);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+  }
+  .cursor-glow.active{ opacity: 1; }
+  @media (hover: none), (pointer: coarse){
+    .cursor-glow{ display: none; }
   }
 
   .section-head{
@@ -351,7 +454,15 @@
     border-radius: 4px;
     padding: 20px 22px;
     margin-bottom: 14px;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.25s ease;
+    transform-style: preserve-3d;
   }
+  .reveal.in .stat-card{ opacity: 1; transform: translateY(0); }
+  .reveal.in .stat-card:nth-child(1){ transition-delay: 0ms; }
+  .reveal.in .stat-card:nth-child(2){ transition-delay: 100ms; }
+  .reveal.in .stat-card:nth-child(3){ transition-delay: 200ms; }
   .stat-value{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 1.6rem;
@@ -400,11 +511,22 @@
     border: 1px solid var(--border);
     padding: 5px 10px;
     border-radius: 3px;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, opacity 0.45s ease, transform 0.45s ease;
+    opacity: 0;
+    transform: translateY(8px);
   }
+  .reveal.in .skill-tag{ opacity: 1; transform: translateY(0); }
+  .skill-tag:nth-child(1){ transition-delay: 0ms; }
+  .skill-tag:nth-child(2){ transition-delay: 40ms; }
+  .skill-tag:nth-child(3){ transition-delay: 80ms; }
+  .skill-tag:nth-child(4){ transition-delay: 120ms; }
+  .skill-tag:nth-child(5){ transition-delay: 160ms; }
+  .skill-tag:nth-child(6){ transition-delay: 200ms; }
+  .skill-tag:nth-child(7){ transition-delay: 240ms; }
   .skill-tag:hover{
     border-color: var(--signal);
     color: var(--signal);
+    transform: translateY(-2px);
   }
 
   /* ---------- PROJECTS ---------- */
@@ -415,11 +537,20 @@
     padding: 40px;
     margin-bottom: 28px;
     position: relative;
-    transition: border-color 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.5s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
   }
+  .reveal.in .case-file{ opacity: 1; transform: translateY(0); }
+  .case-file:nth-of-type(2){ transition-delay: 150ms, 150ms, 0ms, 0ms; }
   .case-file:hover{
     border-color: var(--signal);
-    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  }
+  @media (max-width: 640px){
+    .case-file{ padding: 26px 22px; }
   }
   .case-file .bracket{
     width: 18px; height: 18px;
@@ -464,6 +595,19 @@
     border-radius: 3px;
     margin-bottom: 20px;
   }
+  .case-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--signal);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    margin: -4px 0 22px 12px;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
+  }
+  .case-link:hover{ border-color: var(--signal); }
   .case-file ul{
     list-style: none;
     display: flex;
@@ -564,10 +708,14 @@
   .contact-lockon{
     position: relative;
     display: inline-block;
+    max-width: 100%;
     padding: 40px 48px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--panel);
+  }
+  @media (max-width: 480px){
+    .contact-lockon{ padding: 28px 24px; display: block; }
   }
   .contact-lockon .bracket{
     width: 20px; height: 20px;
@@ -639,20 +787,26 @@
 </head>
 <body>
 
+<canvas id="bgCanvas" class="bg-canvas"></canvas>
 <div class="grid-overlay"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
 
 <nav>
   <div class="nav-inner">
     <div class="nav-id"><span class="dot"></span>A.ALDALI</div>
-    <div class="nav-links">
+    <div class="nav-links" id="navLinks">
       <a href="#about">About</a>
       <a href="#skills">Skills</a>
       <a href="#projects">Projects</a>
       <a href="#experience">Experience</a>
       <a href="#contact">Contact</a>
     </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+<div class="nav-scrim" id="navScrim"></div>
 
 <div class="container">
 
@@ -674,7 +828,7 @@
       <div class="confidence-row">
         <span class="confidence-label mono">DETECTION_CONFIDENCE</span>
         <div class="confidence-bar"><div class="confidence-fill"></div></div>
-        <span class="confidence-value mono">99.75%</span>
+        <span class="confidence-value mono" id="confidenceValue">0.00%</span>
       </div>
     </div>
 
@@ -786,6 +940,7 @@
         <div class="case-title display">Smart Government Property Transfer Platform</div>
         <div class="case-stack">Flutter · Laravel · FastAPI · TimeSformer · MTCNN · OCR · KYC</div>
         <div class="case-role">Team project — my role: Frontend &amp; ML Engineer</div>
+        <a class="case-link" href="https://github.com/abdullah-ald/Smart-Government-Property-Transfer-Platform" target="_blank" rel="noopener">View ML Code on GitHub →</a>
         <ul>
           <li>Collaborated with a team to design and build a full end-to-end digital government platform enabling citizens to transfer residential real-estate ownership entirely online, integrating four government entities — judicial registry, land registry, finance authority, and a mock bank — into a single digital workflow.</li>
           <li>Built the Flutter front end that carries a citizen through the transfer flow, from document submission through the KYC challenge to final ownership-claim issuance.</li>
@@ -898,6 +1053,7 @@
         <div class="contact-links">
           <a href="mailto:abdullah.ahmad.aldali@gmail.com">abdullah.ahmad.aldali@gmail.com</a>
           <a href="tel:+963945704006">+963 945 704 006</a>
+          <a href="https://github.com/abdullah-ald" target="_blank" rel="noopener">github.com/abdullah-ald</a>
         </div>
         <div class="contact-meta">Damascus, Syria — available for remote &amp; relocation</div>
       </div>
@@ -909,6 +1065,118 @@
 <footer>ABDULLAH ALDALI — MACHINE LEARNING ENGINEER</footer>
 
 <script>
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isCoarsePointer = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+  // ---------- 3D scroll-linked background (flowing wireframe grid / horizon) ----------
+  (function initBackgroundScene(){
+    const canvas = document.getElementById('bgCanvas');
+    if(!canvas || typeof THREE === 'undefined') return;
+
+    let renderer;
+    try{
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    }catch(e){ return; }
+
+    const scene = new THREE.Scene();
+    const bgColor = 0x0B0F14;
+    scene.fog = new THREE.Fog(bgColor, 8, 34);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 2.6, 9);
+    camera.rotation.x = -0.28;
+
+    function setSize(){
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    setSize();
+
+    // Grid plane — wireframe, displaced into rolling waves
+    const segs = isCoarsePointer ? 26 : 46;
+    const planeW = 34, planeD = 60;
+    const geo = new THREE.PlaneGeometry(planeW, planeD, segs, segs * 1.6);
+    geo.rotateX(-Math.PI / 2);
+    const posAttr = geo.attributes.position;
+    const baseZ = new Float32Array(posAttr.count); // original depth (world -z direction)
+    for(let i = 0; i < posAttr.count; i++){ baseZ[i] = posAttr.getZ(i); }
+
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x4FD1C5, wireframe: true, transparent: true, opacity: 0.22,
+    });
+    const grid = new THREE.Mesh(geo, mat);
+    grid.position.y = -1.4;
+    grid.position.z = -14;
+    scene.add(grid);
+
+    // Second, fainter grid layer further back for parallax depth
+    const geo2 = geo.clone();
+    const mat2 = new THREE.MeshBasicMaterial({
+      color: 0x4FD1C5, wireframe: true, transparent: true, opacity: 0.09,
+    });
+    const grid2 = new THREE.Mesh(geo2, mat2);
+    grid2.position.y = -1.0;
+    grid2.position.z = -34;
+    scene.add(grid2);
+
+    // Scroll tracking
+    let scrollFrac = 0;
+    function readScroll(){
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      scrollFrac = max > 0 ? window.scrollY / max : 0;
+    }
+    readScroll();
+    window.addEventListener('scroll', readScroll, { passive: true });
+    window.addEventListener('resize', () => { setSize(); readScroll(); });
+
+    let mouseX = 0, mouseY = 0;
+    if(!isCoarsePointer){
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+      }, { passive: true });
+    }
+
+    let paused = document.hidden;
+    document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+
+    let t = 0;
+    function displace(mesh, timeVal, speedOffset){
+      const pos = mesh.geometry.attributes.position;
+      for(let i = 0; i < pos.count; i++){
+        const x = pos.getX(i);
+        const baseY = baseZ[i]; // depth coordinate before rotation (now local z pre-swap)
+        const wave = Math.sin(x * 0.28 + timeVal) * 0.35
+                   + Math.sin(baseY * 0.18 - timeVal * 0.8 + speedOffset) * 0.45;
+        pos.setY(i, wave);
+      }
+      pos.needsUpdate = true;
+    }
+
+    function render(){
+      if(!paused){
+        if(!reducedMotion){
+          t += 0.014;
+          displace(grid, t, 0);
+          displace(grid2, t * 0.7, 1.7);
+          // flow forward feeling: drift grids toward camera then loop back
+          grid.position.z = -14 + Math.sin(t * 0.05) * 0.6 + scrollFrac * 4;
+          grid2.position.z = -34 + Math.sin(t * 0.04) * 0.8 + scrollFrac * 6;
+        }
+        camera.position.x += (mouseX * 1.0 - camera.position.x) * 0.03;
+        camera.position.y += (2.6 - mouseY * 0.6 - camera.position.y) * 0.03;
+        camera.rotation.x = -0.28 + mouseY * 0.05 - scrollFrac * 0.05;
+        renderer.render(scene, camera);
+      }
+      requestAnimationFrame(render);
+    }
+    render();
+    requestAnimationFrame(() => canvas.classList.add('ready'));
+  })();
+
   // Scroll-triggered reveal
   const revealEls = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries) => {
@@ -920,6 +1188,78 @@
     });
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
+
+  // Mobile nav toggle
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  const navScrim = document.getElementById('navScrim');
+  function closeMenu(){
+    navToggle.classList.remove('open');
+    navLinks.classList.remove('open');
+    navScrim.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMenu(){
+    const isOpen = navLinks.classList.toggle('open');
+    navToggle.classList.toggle('open', isOpen);
+    navScrim.classList.toggle('open', isOpen);
+    navToggle.setAttribute('aria-expanded', String(isOpen));
+  }
+  navToggle.addEventListener('click', toggleMenu);
+  navScrim.addEventListener('click', closeMenu);
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+  // Nav background on scroll
+  const navEl = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    navEl.classList.toggle('scrolled', window.scrollY > 12);
+  }, { passive: true });
+
+  // Cursor glow (desktop / fine pointer only)
+  if(!isCoarsePointer){
+    const glow = document.getElementById('cursorGlow');
+    let shown = false;
+    window.addEventListener('mousemove', (e) => {
+      glow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      if(!shown){ glow.classList.add('active'); shown = true; }
+    }, { passive: true });
+    document.addEventListener('mouseleave', () => glow.classList.remove('active'));
+  }
+
+  // Subtle tilt on case-file cards and stat-cards (desktop only, respects reduced motion)
+  if(!isCoarsePointer && !reducedMotion){
+    document.querySelectorAll('.case-file, .stat-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transition = 'transform 0.1s ease-out';
+        card.style.transform = `perspective(800px) rotateX(${(-y * 4).toFixed(2)}deg) rotateY(${(x * 4).toFixed(2)}deg) translateY(-2px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+        card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateY(0)';
+      });
+    });
+  }
+
+  // Count-up confidence readout, synced with the bar fill
+  const confidenceValue = document.getElementById('confidenceValue');
+  if(confidenceValue){
+    const target = 99.75;
+    const duration = reducedMotion ? 1 : 1600;
+    const startDelay = reducedMotion ? 0 : 2300;
+    setTimeout(() => {
+      const start = performance.now();
+      function tick(now){
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        confidenceValue.textContent = (target * eased).toFixed(2) + '%';
+        if(progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }, startDelay);
+  }
 </script>
 
 </body>
