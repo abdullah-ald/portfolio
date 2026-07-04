@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abdullah Aldali — Machine Learning Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0B0F14;
+    --panel: #111823;
+    --panel-2: #0E141C;
+    --border: #1F2A38;
+    --signal: #4FD1C5;
+    --signal-dim: rgba(79, 209, 197, 0.18);
+    --alert: #F2A93B;
+    --paper: #E7EBF0;
+    --steel: #7C8A9A;
+    --steel-dim: #4A5568;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  ::selection{ background: var(--signal); color: var(--ink); }
+
+  .display{ font-family: 'Space Grotesk', sans-serif; }
+  .mono{ font-family: 'IBM Plex Mono', monospace; }
+
+  a{ color: inherit; }
+
+  /* Grain / scan texture overlay */
+  .grid-overlay{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image:
+      linear-gradient(rgba(79,209,197,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,209,197,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.6;
+  }
+
+  .container{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(11,15,20,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 18px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-id{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--signal);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-id .dot{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 8px var(--signal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity: 1; }
+    50%{ opacity: 0.3; }
+  }
+  .nav-links{
+    display: flex;
+    gap: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    color: var(--steel);
+  }
+  .nav-links a{
+    text-decoration: none;
+    transition: color 0.2s ease;
+    position: relative;
+  }
+  .nav-links a:hover{ color: var(--paper); }
+  .nav-links a::after{
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--signal);
+    transition: width 0.25s ease;
+  }
+  .nav-links a:hover::after{ width: 100%; }
+  @media (max-width: 720px){
+    .nav-links{ display: none; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 90px;
+    position: relative;
+  }
+
+  .scan-frame{
+    position: relative;
+    padding: 56px 8px;
+    margin-bottom: 8px;
+  }
+
+  .bracket{
+    position: absolute;
+    width: 28px; height: 28px;
+    border: 2px solid var(--signal);
+    opacity: 0;
+    animation: bracket-in 0.6s ease forwards;
+  }
+  .bracket.tl{ top: 0; left: 0; border-right: none; border-bottom: none; animation-delay: 0.1s; }
+  .bracket.tr{ top: 0; right: 0; border-left: none; border-bottom: none; animation-delay: 0.2s; }
+  .bracket.bl{ bottom: 0; left: 0; border-right: none; border-top: none; animation-delay: 0.3s; }
+  .bracket.br{ bottom: 0; right: 0; border-left: none; border-top: none; animation-delay: 0.4s; }
+  @keyframes bracket-in{
+    from{ opacity: 0; transform: scale(1.4); }
+    to{ opacity: 1; transform: scale(1); }
+  }
+
+  .scanline{
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--signal), transparent);
+    box-shadow: 0 0 12px var(--signal);
+    top: 0;
+    opacity: 0;
+    animation: scan-sweep 1.8s ease-in-out 0.5s forwards;
+  }
+  @keyframes scan-sweep{
+    0%{ top: 0; opacity: 1; }
+    92%{ opacity: 1; }
+    100%{ top: 100%; opacity: 0; }
+  }
+
+  .eyebrow-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--steel);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fade-up 0.6s ease 1.6s forwards;
+  }
+  .eyebrow-row .sep{ width: 24px; height: 1px; background: var(--steel-dim); }
+
+  h1.name{
+    font-size: clamp(2.6rem, 7vw, 5.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+    opacity: 0;
+    animation: fade-up 0.7s ease 1.7s forwards;
+  }
+  h1.name .last{ color: var(--signal); }
+
+  .role-line{
+    margin-top: 18px;
+    font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+    color: var(--steel);
+    max-width: 640px;
+    opacity: 0;
+    animation: fade-up 0.7s ease 1.9s forwards;
+  }
+
+  @keyframes fade-up{
+    from{ opacity: 0; transform: translateY(14px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .confidence-row{
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    opacity: 0;
+    animation: fade-up 0.6s ease 2.1s forwards;
+  }
+  .confidence-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--steel);
+    white-space: nowrap;
+  }
+  .confidence-bar{
+    width: 220px;
+    height: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .confidence-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--signal), #7EEAE0);
+    animation: fill-bar 1.6s ease 2.3s forwards;
+  }
+  @keyframes fill-bar{ to{ width: 99.75%; } }
+  .confidence-value{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--signal);
+    min-width: 70px;
+  }
+
+  .hero-scroll-hint{
+    position: absolute;
+    bottom: 36px;
+    left: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--steel-dim);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fade-up 0.6s ease 2.6s forwards;
+  }
+  .hero-scroll-hint .line{
+    width: 32px; height: 1px;
+    background: var(--steel-dim);
+  }
+
+  /* ---------- SECTION SHARED ---------- */
+  section{
+    padding: 120px 0;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .section-head{
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 56px;
+  }
+  .section-tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--signal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .section-head::after{
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-title{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+    font-weight: 600;
+  }
+
+  .reveal{
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.in{
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* processing-bar reveal accessory */
+  .proc-bar{
+    height: 2px;
+    background: var(--border);
+    width: 100%;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .proc-bar::after{
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0%;
+    background: var(--signal);
+    transition: width 0.9s ease 0.15s;
+  }
+  .reveal.in .proc-bar::after{ width: 100%; }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 56px;
+  }
+  @media (max-width: 780px){
+    .about-grid{ grid-template-columns: 1fr; }
+  }
+  .about-text p{
+    color: #C7CFD9;
+    font-size: 1.02rem;
+    margin-bottom: 18px;
+  }
+  .about-text strong{ color: var(--paper); font-weight: 600; }
+
+  .stat-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-bottom: 14px;
+  }
+  .stat-value{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.6rem;
+    color: var(--signal);
+    font-weight: 600;
+  }
+  .stat-label{
+    font-size: 12.5px;
+    color: var(--steel);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- SKILLS DASHBOARD ---------- */
+  .skills-dash{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .skill-panel{
+    background: var(--panel-2);
+    padding: 26px 24px;
+  }
+  .skill-panel-head{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--alert);
+    margin-bottom: 16px;
+  }
+  .skill-tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .skill-tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #C7CFD9;
+    background: rgba(79,209,197,0.06);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .skill-tag:hover{
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  /* ---------- PROJECTS ---------- */
+  .case-file{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 40px;
+    margin-bottom: 28px;
+    position: relative;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .case-file:hover{
+    border-color: var(--signal);
+    transform: translateY(-3px);
+  }
+  .case-file .bracket{
+    width: 18px; height: 18px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: none;
+  }
+  .case-file:hover .bracket{ opacity: 1; }
+  .case-file .bracket.tl{ top: 12px; left: 12px; }
+  .case-file .bracket.tr{ top: 12px; right: 12px; }
+  .case-file .bracket.bl{ bottom: 12px; left: 12px; }
+  .case-file .bracket.br{ bottom: 12px; right: 12px; }
+
+  .case-tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--signal);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .case-title{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .case-stack{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--steel);
+    margin-bottom: 10px;
+  }
+  .case-role{
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--alert);
+    border: 1px solid rgba(242,169,59,0.35);
+    background: rgba(242,169,59,0.06);
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+  }
+  .case-file ul{
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .case-file li{
+    color: #C7CFD9;
+    font-size: 0.96rem;
+    padding-left: 18px;
+    position: relative;
+  }
+  .case-file li::before{
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--signal);
+  }
+  /* ---------- EXPERIENCE / EDUCATION ---------- */
+  .timeline-item{
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 24px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .timeline-item:last-child{ border-bottom: none; }
+  .timeline-period{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--steel);
+  }
+  .timeline-role{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .timeline-org{
+    color: var(--signal);
+    font-size: 0.92rem;
+    margin-bottom: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .timeline-item ul{
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .timeline-item li{
+    color: #C7CFD9;
+    font-size: 0.94rem;
+    padding-left: 18px;
+    position: relative;
+  }
+  .timeline-item li::before{
+    content: '›';
+    color: var(--signal);
+    position: absolute;
+    left: 0;
+  }
+  @media (max-width: 640px){
+    .timeline-item{ grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  .cert-list{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .cert-item{
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+  .cert-item span:last-child{ color: var(--steel); }
+  .cert-list.cert-compact .cert-item{
+    padding: 9px 0;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cert-list.cert-compact .cert-item:last-child{ border-bottom: none; }
+  .cert-bonus{
+    font-style: normal;
+    color: var(--steel);
+    font-size: 11px;
+  }
+
+  /* ---------- CONTACT / FOOTER ---------- */
+  .contact-section{
+    text-align: left;
+    padding-bottom: 90px;
+  }
+  .contact-lockon{
+    position: relative;
+    display: inline-block;
+    padding: 40px 48px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+  }
+  .contact-lockon .bracket{
+    width: 20px; height: 20px;
+    opacity: 1;
+    animation: none;
+  }
+  .contact-lockon .bracket.tl{ top: 10px; left: 10px; }
+  .contact-lockon .bracket.tr{ top: 10px; right: 10px; }
+  .contact-lockon .bracket.bl{ bottom: 10px; left: 10px; }
+  .contact-lockon .bracket.br{ bottom: 10px; right: 10px; }
+
+  .contact-status{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--signal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .contact-status .dot{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 8px var(--signal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .contact-links{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .contact-links a{
+    text-decoration: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--paper);
+    transition: color 0.2s ease;
+    width: fit-content;
+  }
+  .contact-links a:hover{ color: var(--signal); }
+  .contact-meta{
+    margin-top: 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--steel);
+  }
+
+  footer{
+    text-align: center;
+    padding: 32px 0 48px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--steel-dim);
+    letter-spacing: 0.04em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  a:focus-visible, button:focus-visible{
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-id"><span class="dot"></span>A.ALDALI</div>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero" style="border-top:none; padding-top:90px;">
+    <div class="scan-frame">
+      <div class="bracket tl"></div>
+      <div class="bracket tr"></div>
+      <div class="bracket bl"></div>
+      <div class="bracket br"></div>
+      <div class="scanline"></div>
+
+      <div class="eyebrow-row">
+        <span>Damascus, Syria</span><span class="sep"></span><span>Computer Vision · Deep Learning</span>
+      </div>
+      <h1 class="name display">ABDULLAH <span class="last">ALDALI</span></h1>
+      <p class="role-line">Machine learning engineer building computer-vision systems for high-stakes security and civic-technology problems — from deepfake detection to biometric identity verification.</p>
+
+      <div class="confidence-row">
+        <span class="confidence-label mono">DETECTION_CONFIDENCE</span>
+        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+        <span class="confidence-value mono">99.75%</span>
+      </div>
+    </div>
+
+    <div class="hero-scroll-hint"><span class="line"></span>SCROLL TO EXPAND FILE</div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">01 — Profile</span>
+      </div>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I'm a Machine Learning Engineer with a BSc in Information Technology Engineering from the <strong>University of Kalamoon</strong>, focused on computer vision, deep learning, and the pipelines that carry a model from a research notebook into a real system people depend on.</p>
+          <p>My flagship work is a <strong>deepfake detection engine</strong> built on a TimeSformer video transformer, trained to catch face-swap manipulation with <strong>0.9975 AUC</strong> on the Celeb-DF v2 benchmark. I've applied that same detection logic inside a production-grade government identity pipeline — combining OCR, liveness detection, and biometric KYC to stop identity spoofing before it reaches a sensitive transaction.</p>
+          <p>I care about the intersection of deep learning and trust: systems that have to be right, because someone's identity, property, or safety is on the other side of the inference.</p>
+        </div>
+        <div class="about-stats">
+          <div class="stat-card">
+            <div class="stat-value" style="font-size:1.15rem;">Frontend + ML</div>
+            <div class="stat-label">My role on both team projects below</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="font-size:1.15rem;">TimeSformer</div>
+            <div class="stat-label">Video transformer I trained for deepfake detection</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="font-size:1.15rem;">Flutter + React</div>
+            <div class="stat-label">Front ends I built for both platforms</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">02 — Skill Readout</span>
+      </div>
+      <div class="skills-dash">
+        <div class="skill-panel">
+          <div class="skill-panel-head">Languages</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Python</span><span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">C++</span><span class="skill-tag">C#</span>
+            <span class="skill-tag">HTML</span><span class="skill-tag">CSS</span>
+          </div>
+        </div>
+        <div class="skill-panel">
+          <div class="skill-panel-head">ML / AI</div>
+          <div class="skill-tags">
+            <span class="skill-tag">PyTorch</span><span class="skill-tag">TimeSformer</span>
+            <span class="skill-tag">MTCNN</span><span class="skill-tag">facenet-pytorch</span>
+            <span class="skill-tag">scikit-learn</span><span class="skill-tag">XGBoost</span>
+            <span class="skill-tag">FastAPI</span>
+          </div>
+        </div>
+        <div class="skill-panel">
+          <div class="skill-panel-head">Computer Vision</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Deepfake Detection</span><span class="skill-tag">Face Extraction</span>
+            <span class="skill-tag">Liveness Detection</span><span class="skill-tag">OCR</span>
+          </div>
+        </div>
+        <div class="skill-panel">
+          <div class="skill-panel-head">Training</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Transfer Learning</span><span class="skill-tag">Fine-tuning</span>
+            <span class="skill-tag">AMP Training</span><span class="skill-tag">AdamW</span>
+            <span class="skill-tag">Early Stopping</span><span class="skill-tag">Class-weight Balancing</span>
+          </div>
+        </div>
+        <div class="skill-panel">
+          <div class="skill-panel-head">Tools &amp; Infra</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Git</span><span class="skill-tag">Google Colab</span>
+            <span class="skill-tag">VS Code</span><span class="skill-tag">Linux</span>
+            <span class="skill-tag">Postman</span><span class="skill-tag">XAMPP</span>
+            <span class="skill-tag">Docker</span>
+          </div>
+        </div>
+        <div class="skill-panel">
+          <div class="skill-panel-head">Languages Spoken</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Arabic — Native</span><span class="skill-tag">English — B2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">03 — Case Files</span>
+      </div>
+
+      <div class="case-file">
+        <div class="bracket tl"></div><div class="bracket tr"></div>
+        <div class="bracket bl"></div><div class="bracket br"></div>
+        <div class="case-tag">Case File — Identity &amp; Property</div>
+        <div class="case-title display">Smart Government Property Transfer Platform</div>
+        <div class="case-stack">Flutter · Laravel · FastAPI · TimeSformer · MTCNN · OCR · KYC</div>
+        <div class="case-role">Team project — my role: Frontend &amp; ML Engineer</div>
+        <ul>
+          <li>Collaborated with a team to design and build a full end-to-end digital government platform enabling citizens to transfer residential real-estate ownership entirely online, integrating four government entities — judicial registry, land registry, finance authority, and a mock bank — into a single digital workflow.</li>
+          <li>Built the Flutter front end that carries a citizen through the transfer flow, from document submission through the KYC challenge to final ownership-claim issuance.</li>
+          <li>Trained a TimeSformer-Base video transformer on Celeb-DF v2 (6,240 videos, identity-split 75/10/15%) to detect face-swap deepfakes as part of the platform's liveness check.</li>
+          <li>Engineered a GPU-accelerated face-extraction pipeline with MTCNN producing 224×224 aligned crops across 8 frames per video, trained with AdamW and gradient clipping, BCE loss with class-weight balancing, and early stopping (patience 5).</li>
+          <li>Helped integrate the multi-stage KYC pipeline — OCR-based national-ID extraction, a face-liveness challenge via the deepfake classifier, and OTP confirmation — to block identity spoofing before any sensitive transaction proceeds.</li>
+          <li>Contributed to a 15-stage transaction state machine (create → judicial check → buyer approval → valuation → tax calculation → payment → OTP → completion → ownership-claim code) with strict sequential gating.</li>
+        </ul>
+      </div>
+
+      <div class="case-file">
+        <div class="bracket tl"></div><div class="bracket tr"></div>
+        <div class="bracket bl"></div><div class="bracket br"></div>
+        <div class="case-tag">Case File — Sports Analytics</div>
+        <div class="case-title display">AI Football League Platform</div>
+        <div class="case-stack">React.js · Node.js · MongoDB · Computer Vision · Heat-map Analysis</div>
+        <div class="case-role">Team project — my role: Frontend &amp; ML Engineer</div>
+        <ul>
+          <li>Collaborated with a team to build a football league management platform with live match data, standings, and AI-powered player positional heat-maps for tactical analysis.</li>
+          <li>Led front-end development in React.js and helped integrate the AI match-analysis module that renders real-time positional heat-maps from tracking data.</li>
+          <li>Worked with the team's RESTful API layer in Node.js and MongoDB, which served live statistics and historical player movement data to the React client.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">04 — Experience</span>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-period mono">2024<br>3 months</div>
+        <div>
+          <div class="timeline-role display">Frontend Developer Intern</div>
+          <div class="timeline-org">FocalX — Damascus, Syria</div>
+          <ul>
+            <li>Developed responsive web interfaces in React.js, ensuring cross-browser compatibility and mobile-first design.</li>
+            <li>Collaborated with the development team on component architecture and RESTful API integration to improve UI data flow.</li>
+            <li>Contributed to code reviews and maintained consistent UI patterns across the product.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">05 — Education &amp; Certifications</span>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-period mono">Graduated<br>2026</div>
+        <div>
+          <div class="timeline-role display">BSc, Information Technology Engineering</div>
+          <div class="timeline-org">University of Kalamoon — Damascus, Syria</div>
+          <p style="color:#C7CFD9; font-size:0.94rem;">GPA 3.18 / 4.0</p>
+        </div>
+      </div>
+      <div class="skills-dash" style="margin-top: 8px;">
+        <div class="skill-panel" style="grid-column: span 1;">
+          <div class="skill-panel-head">DataCamp — Machine Learning Scientist with Python</div>
+          <div class="cert-list cert-compact">
+            <div class="cert-item"><span>Supervised Learning with scikit-learn</span></div>
+            <div class="cert-item"><span>Predictive Modeling for Agriculture <em class="cert-bonus">(project)</em></span></div>
+            <div class="cert-item"><span>Unsupervised Learning in Python</span></div>
+            <div class="cert-item"><span>Clustering Antarctic Penguin Species <em class="cert-bonus">(project)</em></span></div>
+            <div class="cert-item"><span>Linear Classifiers in Python</span></div>
+            <div class="cert-item"><span>Machine Learning with Tree-Based Models in Python</span></div>
+            <div class="cert-item"><span>Predicting Movie Rental Durations <em class="cert-bonus">(project)</em></span></div>
+            <div class="cert-item"><span>Extreme Gradient Boosting with XGBoost</span></div>
+            <div class="cert-item"><span>Cluster Analysis in Python</span></div>
+            <div class="cert-item"><span>Dimensionality Reduction in Python</span></div>
+            <div class="cert-item"><span>Preprocessing for Machine Learning in Python</span></div>
+            <div class="cert-item"><span>Machine Learning for Time Series Data in Python</span></div>
+            <div class="cert-item"><span>Machine Learning Fundamentals in Python <em class="cert-bonus">(assessment)</em></span></div>
+            <div class="cert-item"><span>Natural Language Processing (NLP) in Python</span></div>
+          </div>
+        </div>
+        <div class="skill-panel" style="grid-column: span 1;">
+          <div class="skill-panel-head">Coursera</div>
+          <div class="cert-list cert-compact">
+            <div class="cert-item"><span>Introduction to Front-End Development</span><span>Meta</span></div>
+            <div class="cert-item"><span>Programming with JavaScript</span><span>Meta</span></div>
+            <div class="cert-item"><span>Version Control</span><span>Meta</span></div>
+            <div class="cert-item"><span>React Basics</span><span>Meta</span></div>
+            <div class="cert-item"><span>HTML, CSS, and JavaScript for Web Developers</span><span>Johns Hopkins University</span></div>
+            <div class="cert-item"><span>Python Basics</span><span>University of Michigan</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact-section">
+    <div class="reveal">
+      <div class="proc-bar"></div>
+      <div class="section-head">
+        <span class="section-tag">06 — Contact</span>
+      </div>
+      <div class="contact-lockon">
+        <div class="bracket tl"></div><div class="bracket tr"></div>
+        <div class="bracket bl"></div><div class="bracket br"></div>
+        <div class="contact-status"><span class="dot"></span>Open to opportunities</div>
+        <div class="contact-links">
+          <a href="mailto:abdullah.ahmad.aldali@gmail.com">abdullah.ahmad.aldali@gmail.com</a>
+          <a href="tel:+963945704006">+963 945 704 006</a>
+        </div>
+        <div class="contact-meta">Damascus, Syria — available for remote &amp; relocation</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>ABDULLAH ALDALI — MACHINE LEARNING ENGINEER</footer>
+
+<script>
+  // Scroll-triggered reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
