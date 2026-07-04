@@ -20,7 +20,41 @@
     --paper: #E7EBF0;
     --steel: #7C8A9A;
     --steel-dim: #4A5568;
+    --text-soft: #C7CFD9;
+    --tag-bg: rgba(79,209,197,0.06);
+    --role-border: rgba(242,169,59,0.35);
+    --role-bg: rgba(242,169,59,0.06);
+    --nav-bg: rgba(11,15,20,0.85);
+    --nav-bg-scrolled: rgba(11,15,20,0.96);
+    --shadow-color: rgba(0,0,0,0.35);
+    --scrim-color: rgba(0,0,0,0.5);
+    --overlay-line: rgba(79,209,197,0.025);
+    --glow-color: rgba(79,209,197,0.10);
   }
+
+  html[data-theme="light"]{
+    --ink: #F3F5F7;
+    --panel: #FFFFFF;
+    --panel-2: #EEF1F4;
+    --border: #DCE2E8;
+    --signal: #0E8577;
+    --signal-dim: rgba(14,133,119,0.14);
+    --alert: #B96E13;
+    --paper: #141A20;
+    --steel: #5B6B78;
+    --steel-dim: #8B99A6;
+    --text-soft: #35414C;
+    --tag-bg: rgba(14,133,119,0.07);
+    --role-border: rgba(185,110,19,0.4);
+    --role-bg: rgba(185,110,19,0.08);
+    --nav-bg: rgba(243,245,247,0.85);
+    --nav-bg-scrolled: rgba(243,245,247,0.97);
+    --shadow-color: rgba(20,26,32,0.12);
+    --scrim-color: rgba(20,26,32,0.35);
+    --overlay-line: rgba(14,133,119,0.035);
+    --glow-color: rgba(14,133,119,0.08);
+  }
+
 
   *{ box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -48,8 +82,8 @@
     pointer-events: none;
     z-index: 1;
     background-image:
-      linear-gradient(rgba(79,209,197,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(79,209,197,0.025) 1px, transparent 1px);
+      linear-gradient(var(--overlay-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--overlay-line) 1px, transparent 1px);
     background-size: 48px 48px;
     opacity: 0.6;
   }
@@ -84,14 +118,14 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 50;
-    background: rgba(11,15,20,0.85);
+    background: var(--nav-bg);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
     transition: background 0.3s ease, box-shadow 0.3s ease;
   }
   nav.scrolled{
-    background: rgba(11,15,20,0.96);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    background: var(--nav-bg-scrolled);
+    box-shadow: 0 8px 24px var(--shadow-color);
   }
   .nav-inner{
     max-width: 1080px;
@@ -169,6 +203,32 @@
   .nav-toggle.open span:nth-child(2){ opacity: 0; }
   .nav-toggle.open span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
 
+  .nav-actions{
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .theme-toggle{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--steel);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover{ color: var(--signal); border-color: var(--signal); }
+  .theme-toggle:active{ transform: scale(0.92); }
+  .theme-toggle .icon-sun{ display: none; }
+  html[data-theme="light"] .theme-toggle .icon-sun{ display: block; }
+  html[data-theme="light"] .theme-toggle .icon-moon{ display: none; }
+
   @media (max-width: 720px){
     .nav-links{
       position: fixed;
@@ -193,7 +253,7 @@
   .nav-scrim{
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--scrim-color);
     z-index: 45;
     opacity: 0;
     pointer-events: none;
@@ -364,7 +424,7 @@
     top: 0; left: 0;
     width: 480px; height: 480px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(79,209,197,0.10), transparent 70%);
+    background: radial-gradient(circle, var(--glow-color), transparent 70%);
     transform: translate3d(-50%,-50%,0);
     pointer-events: none;
     z-index: 0;
@@ -442,7 +502,7 @@
     .about-grid{ grid-template-columns: 1fr; }
   }
   .about-text p{
-    color: #C7CFD9;
+    color: var(--text-soft);
     font-size: 1.02rem;
     margin-bottom: 18px;
   }
@@ -506,8 +566,8 @@
   .skill-tag{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
-    color: #C7CFD9;
-    background: rgba(79,209,197,0.06);
+    color: var(--text-soft);
+    background: var(--tag-bg);
     border: 1px solid var(--border);
     padding: 5px 10px;
     border-radius: 3px;
@@ -547,7 +607,7 @@
   .case-file:nth-of-type(2){ transition-delay: 150ms, 150ms, 0ms, 0ms; }
   .case-file:hover{
     border-color: var(--signal);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    box-shadow: 0 20px 40px var(--shadow-color);
   }
   @media (max-width: 640px){
     .case-file{ padding: 26px 22px; }
@@ -589,8 +649,8 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     color: var(--alert);
-    border: 1px solid rgba(242,169,59,0.35);
-    background: rgba(242,169,59,0.06);
+    border: 1px solid var(--role-border);
+    background: var(--role-bg);
     padding: 4px 10px;
     border-radius: 3px;
     margin-bottom: 20px;
@@ -615,7 +675,7 @@
     gap: 10px;
   }
   .case-file li{
-    color: #C7CFD9;
+    color: var(--text-soft);
     font-size: 0.96rem;
     padding-left: 18px;
     position: relative;
@@ -659,7 +719,7 @@
     gap: 8px;
   }
   .timeline-item li{
-    color: #C7CFD9;
+    color: var(--text-soft);
     font-size: 0.94rem;
     padding-left: 18px;
     position: relative;
@@ -748,6 +808,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-width: 100%;
   }
   .contact-links a{
     text-decoration: none;
@@ -756,9 +817,14 @@
     font-weight: 600;
     color: var(--paper);
     transition: color 0.2s ease;
-    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .contact-links a:hover{ color: var(--signal); }
+  @media (max-width: 480px){
+    .contact-links a{ font-size: 1.05rem; }
+  }
   .contact-meta{
     margin-top: 18px;
     font-family: 'IBM Plex Mono', monospace;
@@ -794,16 +860,27 @@
 <nav>
   <div class="nav-inner">
     <div class="nav-id"><span class="dot"></span>A.ALDALI</div>
-    <div class="nav-links" id="navLinks">
-      <a href="#about">About</a>
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#experience">Experience</a>
-      <a href="#contact">Contact</a>
+    <div class="nav-actions">
+      <div class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#experience">Experience</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Switch to light mode" title="Toggle light / dark theme">
+        <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
   </div>
 </nav>
 <div class="nav-scrim" id="navScrim"></div>
@@ -1001,7 +1078,7 @@
         <div>
           <div class="timeline-role display">BSc, Information Technology Engineering</div>
           <div class="timeline-org">University of Kalamoon — Damascus, Syria</div>
-          <p style="color:#C7CFD9; font-size:0.94rem;">GPA 3.18 / 4.0</p>
+          <p style="color:var(--text-soft); font-size:0.94rem;">GPA 3.18 / 4.0</p>
         </div>
       </div>
       <div class="skills-dash" style="margin-top: 8px;">
@@ -1079,8 +1156,14 @@
     }catch(e){ return; }
 
     const scene = new THREE.Scene();
-    const bgColor = 0x0B0F14;
-    scene.fog = new THREE.Fog(bgColor, 8, 34);
+    const THEME_COLORS = {
+      dark:  { bg: 0x0B0F14, line: 0x4FD1C5, opacityMain: 0.22, opacitySecond: 0.09 },
+      light: { bg: 0xF3F5F7, line: 0x0E8577, opacityMain: 0.30, opacitySecond: 0.14 },
+    };
+    function currentTheme(){
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+    scene.fog = new THREE.Fog(THEME_COLORS[currentTheme()].bg, 8, 34);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 2.6, 9);
@@ -1121,6 +1204,17 @@
     grid2.position.y = -1.0;
     grid2.position.z = -34;
     scene.add(grid2);
+
+    function applyTheme(theme){
+      const c = THEME_COLORS[theme] || THEME_COLORS.dark;
+      scene.fog.color.setHex(c.bg);
+      mat.color.setHex(c.line);
+      mat.opacity = c.opacityMain;
+      mat2.color.setHex(c.line);
+      mat2.opacity = c.opacitySecond;
+    }
+    applyTheme(currentTheme());
+    document.addEventListener('themechange', (e) => applyTheme(e.detail.theme));
 
     // Scroll tracking
     let scrollFrac = 0;
@@ -1188,6 +1282,17 @@
     });
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
+
+  // Light / dark theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const htmlEl = document.documentElement;
+  themeToggle.addEventListener('click', () => {
+    const isLight = htmlEl.getAttribute('data-theme') === 'light';
+    const newTheme = isLight ? 'dark' : 'light';
+    htmlEl.setAttribute('data-theme', newTheme);
+    themeToggle.setAttribute('aria-label', isLight ? 'Switch to light mode' : 'Switch to dark mode');
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: newTheme } }));
+  });
 
   // Mobile nav toggle
   const navToggle = document.getElementById('navToggle');
